@@ -1,0 +1,60 @@
+service: default-app
+
+plugins:
+  - serverless-domain-manager
+  - serverless-s3-block-public-access
+
+provider:
+  name: aws
+  stage: default
+  runtime: nodejs14.x
+  region: eu-west-1
+  memorySize: 512
+  timeout: 30
+  logRetentionInDays: 30
+  # endpointType: REGIONAL
+  apiGateway:
+    shouldStartNameWithService: true
+  versionFunctions: false
+  environment:
+    NODE_ENV: production
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_ANON_KEY: ${env:SUPABASE_ANON_KEY}
+  tags:
+    project: 'useragents'
+  stackTags:
+    project: 'exampluseragentseapp'
+  deploymentBucket:
+    tags:
+      project: 'useragents'
+
+package:
+  exclude:
+    - 'README.md'
+    - '.editorconfig'
+    - 'LICENSE.md'
+    - '.git/**'
+    - '.github/**'
+    - '.vscode/**'
+    - '.gitignore'
+    - '.prettierignore*'
+    - 'livereload.js'
+    - 'test/**'
+  include:
+    - 'template.html'
+
+custom:
+  exportGitVariables: false
+  customDomains:
+    - rest:
+        domainName: useragents.ruslan.org
+        createRoute53Record: true
+        endpointType: edge
+        autoDomain: true
+
+functions:
+  api:
+    handler: index.serverless
+    events:
+      - http: GET /
+      - http: 'ANY /{proxy+}'
